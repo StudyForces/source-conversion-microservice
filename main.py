@@ -87,6 +87,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
         with open(save_path, 'rb') as upload:
             requests.put(upload_urls[0]["url"], data=upload)
             data["files"].append(upload_urls[0]["fileName"])
+            print(upload_urls[0]["url"])
             upload.close()
             os.remove(save_path)
 

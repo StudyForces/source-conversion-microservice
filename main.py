@@ -75,21 +75,20 @@ def on_message(channel, method_frame, header_frame, body) -> None:
             page = ny(image=img)
             save_path = f'{conv_path}/{idx}.png'
             page.save(filename=save_path)
-            if upload_image(session, url, file):
+            if upload_image(session, url, save_path):
                 data["files"].append(upload_urls[idx]["fileName"])
             else:
-                print(f'Something went wrong with uploading {file}')
+                print(f'Something went wrong with uploading {save_path}')
             os.remove(save_path)
     else:
         ny = Image(filename=file)
         save_path = f'{conv_path}/0.png'
         ny.save(filename=save_path)
-        with open(save_path, 'rb') as upload:
-            requests.put(upload_urls[0]["url"], data=upload)
+        if upload_image(session, url, save_path):
             data["files"].append(upload_urls[0]["fileName"])
-            print(upload_urls[0]["url"])
-            upload.close()
-            os.remove(save_path)
+        else:
+            print(f'Something went wrong with uploading {save_path}')
+        os.remove(save_path)
 
     os.remove(file)
     os.removedirs(conv_path)

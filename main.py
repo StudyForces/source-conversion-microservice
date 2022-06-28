@@ -39,9 +39,12 @@ def download_image(session: requests.Session, url: str, path: str) -> bool:
 
 def upload_image(session: requests.Session, url: str, path: str) -> bool:
     with open(path, 'rb') as upload:
-        r = session.put(url, data=upload, headers={"content-type": "image/png"}, stream=True)
+        r = session.put(url, data=upload, headers={"Content-Type": "image/png"}, stream=True)
         if r.status_code == 200:
             return True
+        else:
+            print(r.text)
+            print(url, r.request.headers)
         return False
 
 

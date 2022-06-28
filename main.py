@@ -78,7 +78,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
             page = ny(image=img)
             save_path = f'{conv_path}/{idx}.png'
             page.save(filename=save_path)
-            if upload_image(session, url, save_path):
+            if upload_image(session, upload_urls[idx]["url"], save_path):
                 data["files"].append(upload_urls[idx]["fileName"])
             else:
                 print(f'Something went wrong with uploading {save_path}')
@@ -87,7 +87,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
         ny = Image(filename=file)
         save_path = f'{conv_path}/0.png'
         ny.save(filename=save_path)
-        if upload_image(session, url, save_path):
+        if upload_image(session, upload_urls[0]["url"], save_path):
             data["files"].append(upload_urls[0]["fileName"])
         else:
             print(f'Something went wrong with uploading {save_path}')

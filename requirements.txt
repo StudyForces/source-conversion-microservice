@@ -1,0 +1,4 @@
+pika
+requests
+python-dotenv
+wand

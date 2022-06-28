@@ -37,6 +37,14 @@ def download_image(session: requests.Session, url: str, path: str) -> bool:
     return False
 
 
+def upload_image(session: requests.Session, url: str, path: str) -> bool:
+    with open(path, 'rb') as upload:
+        r = session.put(url, data=upload, headers={"content-type": "image/png"}, stream=True)
+        if r.status_code == 200:
+            return True
+        return False
+
+
 def send(message: str) -> None:
     print(message)
     rmq_channel.basic_publish(exchange=SENDER_QUEUE_NAME, routing_key=SENDER_QUEUE_NAME, body=message)
@@ -67,11 +75,11 @@ def on_message(channel, method_frame, header_frame, body) -> None:
             page = ny(image=img)
             save_path = f'{conv_path}/{idx}.png'
             page.save(filename=save_path)
-            with open(save_path, 'rb') as upload:
-                requests.put(upload_urls[idx]["url"], data=upload)
+            if upload_image(session, url, file):
                 data["files"].append(upload_urls[idx]["fileName"])
-                upload.close()
-                os.remove(save_path)
+            else:
+                print(f'Something went wrong with uploading {file}')
+            os.remove(save_path)
     else:
         ny = Image(filename=file)
         save_path = f'{conv_path}/0.png'

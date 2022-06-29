@@ -75,7 +75,8 @@ def on_message(channel, method_frame, header_frame, body) -> None:
         ny = Image(filename=file)
         ny_converted = ny.convert('png')
         for idx, img in enumerate(ny_converted.sequence):
-            page = ny(image=img)
+            page = Image(image=img)
+            page.format = 'png'
             save_path = f'{conv_path}/{idx}.png'
             page.save(filename=save_path)
             if upload_image(session, upload_urls[idx]["url"], save_path):

@@ -72,7 +72,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
     os.makedirs(conv_path, exist_ok=True)
 
     if mime_type == "application/pdf" or mime_type == "image/gif":
-        ny = Image(filename=file)
+        ny = Image(filename=file, resolution=200)
         ny_converted = ny.convert('png')
         for idx, img in enumerate(ny_converted.sequence):
             page = Image(image=img)

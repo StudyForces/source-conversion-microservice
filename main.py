@@ -56,50 +56,57 @@ def send(message: str) -> None:
 def on_message(channel, method_frame, header_frame, body) -> None:
     rmq_channel.basic_ack(method_frame.delivery_tag)
     req = json.loads(body)
-    url = req["url"]
     upload_id = req["sourceUploadID"]
-    mime_type = req["fileInfo"]["contentType"]
     upload_urls = req["uploadURLs"]
-    file = f"tmp/{upload_id}.{mimeTypesExtension[mime_type]}"
-    if not download_image(session, url, file):
-        return None
+    file_infos = req["fileInfos"]
 
-    data = {
-        "files": []
-    }
+    os.makedirs(f"tmp/{upload_id}", exist_ok=True)
 
-    conv_path = f'tmp/conv/{file}'
-    os.makedirs(conv_path, exist_ok=True)
+    files = []
+    counter = 0
 
-    if mime_type == "application/pdf" or mime_type == "image/gif":
-        ny = Image(filename=file, resolution=200)
-        ny_converted = ny.convert('png')
-        for idx, img in enumerate(ny_converted.sequence):
-            page = Image(image=img)
-            page.format = 'png'
-            save_path = f'{conv_path}/{idx}.png'
-            page.save(filename=save_path)
-            if upload_image(session, upload_urls[idx]["url"], save_path):
-                data["files"].append(upload_urls[idx]["fileName"])
+    for idx, info in enumerate(file_infos):
+        url = info["url"]
+        mime_type = info["fileInfo"]["contentType"]
+        file = f"tmp/{upload_id}/{idx}.{mimeTypesExtension[mime_type]}"
+        if not download_image(session, url, file):
+            return None
+
+        conv_path = f'tmp/conv/{file}'
+        os.makedirs(conv_path, exist_ok=True)
+
+        if mime_type == "application/pdf" or mime_type == "image/gif":
+            ny = Image(filename=file, resolution=200)
+            ny_converted = ny.convert('png')
+            for page, img in enumerate(ny_converted.sequence):
+                page = Image(image=img)
+                page.format = 'png'
+                save_path = f'{conv_path}/{page}.png'
+                page.save(filename=save_path)
+                if upload_image(session, upload_urls[counter]["url"], save_path):
+                    files.append(upload_urls[counter]["fileName"])
+                else:
+                    print(f'Something went wrong with uploading {save_path}')
+                counter += 1
+                os.remove(save_path)
+        else:
+            ny = Image(filename=file)
+            save_path = f'{conv_path}/0.png'
+            ny.save(filename=save_path)
+            if upload_image(session, upload_urls[counter]["url"], save_path):
+                files.append(upload_urls[counter]["fileName"])
             else:
                 print(f'Something went wrong with uploading {save_path}')
+            counter += 1
             os.remove(save_path)
-    else:
-        ny = Image(filename=file)
-        save_path = f'{conv_path}/0.png'
-        ny.save(filename=save_path)
-        if upload_image(session, upload_urls[0]["url"], save_path):
-            data["files"].append(upload_urls[0]["fileName"])
-        else:
-            print(f'Something went wrong with uploading {save_path}')
-        os.remove(save_path)
-
-    os.remove(file)
-    os.removedirs(conv_path)
+        os.remove(file)
+        os.removedirs(conv_path)
 
     res = {
         "sourceUploadID": upload_id,
-        "data": data
+        "data": {
+            "files": files
+        }
     }
 
     send(json.dumps(res, separators=(',', ':'), ensure_ascii=False))

@@ -30,6 +30,8 @@ rmq_channel.exchange_declare(exchange=SENDER_QUEUE_NAME, exchange_type='topic', 
 
 
 def download_image(session: requests.Session, url: str, path: str) -> bool:
+    if os.path.exists(path):
+        os.remove(path)
     r = session.get(url, stream=True)
     if r.status_code == 200:
         with open(path, "wb") as f:

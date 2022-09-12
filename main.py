@@ -25,7 +25,6 @@ connection = pika.BlockingConnection(pika.ConnectionParameters(HOST))
 
 rmq_channel = connection.channel()
 session = requests.Session()
-session.mount('https://minio.pkasila.net', HTTPAdapter(max_retries=5))
 
 rmq_channel.exchange_declare(exchange=SENDER_QUEUE_NAME, exchange_type='topic', durable=True)
 
@@ -45,7 +44,7 @@ def upload_image(session: requests.Session, url: str, path: str) -> bool:
         if r.status_code == 200:
             return True
         else:
-            print(r.text)
+            print(r.status_code)
             print(url, r.request.headers)
         return False
 
@@ -89,6 +88,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
                     files.append(upload_urls[counter]["fileName"])
                 else:
                     print(f'Something went wrong with uploading {save_path}')
+                    return None
                 counter += 1
                 os.remove(save_path)
         else:
@@ -99,6 +99,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
                 files.append(upload_urls[counter]["fileName"])
             else:
                 print(f'Something went wrong with uploading {save_path}')
+                return None
             counter += 1
             os.remove(save_path)
         os.remove(file)

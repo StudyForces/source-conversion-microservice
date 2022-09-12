@@ -2,7 +2,6 @@ import os
 import pika
 import json
 import requests
-from requests.adapters import HTTPAdapter
 from wand.image import Image
 from dotenv import load_dotenv
 
@@ -88,6 +87,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
                 page.format = 'png'
                 save_path = f'{conv_path}/{page_number}.png'
                 page.save(filename=save_path)
+                page.destroy()
                 print(f'Uploading {save_path}...')
                 if upload_image(session, upload_urls[counter]["url"], save_path):
                     files.append(upload_urls[counter]["fileName"])
@@ -101,6 +101,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
             ny = Image(filename=file)
             save_path = f'{conv_path}/0.png'
             ny.save(filename=save_path)
+            ny.destroy()
             print(f'Uploading {save_path}...')
             if upload_image(session, upload_urls[counter]["url"], save_path):
                 files.append(upload_urls[counter]["fileName"])

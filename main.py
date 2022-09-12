@@ -74,6 +74,7 @@ def on_message(channel, method_frame, header_frame, body) -> None:
         mime_type = info["fileInfo"]["contentType"]
         file = f"tmp/{upload_id}/{idx}.{mimeTypesExtension[mime_type]}"
         if not download_image(session, url, file):
+            print(f'Failed to download {file}')
             return None
 
         conv_path = f'tmp/conv/{file}'
@@ -94,9 +95,10 @@ def on_message(channel, method_frame, header_frame, body) -> None:
                     print(f'Uploaded {save_path}')
                 else:
                     print(f'Something went wrong with uploading {save_path}')
-                    return
                 counter += 1
                 os.remove(save_path)
+            ny_converted.destroy()
+            ny.destroy()
         else:
             ny = Image(filename=file)
             save_path = f'{conv_path}/0.png'
@@ -108,7 +110,6 @@ def on_message(channel, method_frame, header_frame, body) -> None:
                 print(f'Uploaded {save_path}')
             else:
                 print(f'Something went wrong with uploading {save_path}')
-                return
             counter += 1
             os.remove(save_path)
         os.remove(file)
@@ -121,7 +122,8 @@ def on_message(channel, method_frame, header_frame, body) -> None:
         }
     }
 
-    send(json.dumps(res, separators=(',', ':'), ensure_ascii=False))
+    if counter == len(files):
+        send(json.dumps(res, separators=(',', ':'), ensure_ascii=False))
 
 
 result = rmq_channel.queue_declare(queue='', exclusive=True)

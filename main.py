@@ -39,7 +39,7 @@ def download_image(session: requests.Session, url: str, path: str) -> bool:
     return False
 
 
-def upload_image(session: requests.Session, url: str, path: str) -> bool:
+def upload_image(session: requests.Session, url: str, path: str, t=0) -> bool:
     with open(path, 'rb') as upload:
         r = session.put(url, data=upload, headers={"Content-Type": "image/png"}, stream=True)
         if r.status_code == 200:
@@ -47,6 +47,8 @@ def upload_image(session: requests.Session, url: str, path: str) -> bool:
         else:
             print(r.status_code)
             print(url, r.request.headers)
+            if t < 5:
+                upload_image(session, url, path, t + 1)
         return False
 
 

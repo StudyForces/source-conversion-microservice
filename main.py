@@ -55,6 +55,8 @@ def send(message: str) -> None:
 
 
 def on_message(channel, method_frame, header_frame, body) -> None:
+    print(body)
+
     rmq_channel.basic_ack(method_frame.delivery_tag)
     req = json.loads(body)
     upload_id = req["sourceUploadID"]
@@ -79,27 +81,31 @@ def on_message(channel, method_frame, header_frame, body) -> None:
         if mime_type == "application/pdf" or mime_type == "image/gif":
             ny = Image(filename=file, resolution=200)
             ny_converted = ny.convert('png')
-            for page, img in enumerate(ny_converted.sequence):
+            for page_number, img in enumerate(ny_converted.sequence):
                 page = Image(image=img)
                 page.format = 'png'
-                save_path = f'{conv_path}/{page}.png'
+                save_path = f'{conv_path}/{page_number}.png'
                 page.save(filename=save_path)
+                print(f'Uploading {save_path}...')
                 if upload_image(session, upload_urls[counter]["url"], save_path):
                     files.append(upload_urls[counter]["fileName"])
+                    print(f'Uploaded {save_path}')
                 else:
                     print(f'Something went wrong with uploading {save_path}')
-                    return None
+                    return
                 counter += 1
                 os.remove(save_path)
         else:
             ny = Image(filename=file)
             save_path = f'{conv_path}/0.png'
             ny.save(filename=save_path)
+            print(f'Uploading {save_path}...')
             if upload_image(session, upload_urls[counter]["url"], save_path):
                 files.append(upload_urls[counter]["fileName"])
+                print(f'Uploaded {save_path}')
             else:
                 print(f'Something went wrong with uploading {save_path}')
-                return None
+                return
             counter += 1
             os.remove(save_path)
         os.remove(file)

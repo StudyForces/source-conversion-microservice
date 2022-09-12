@@ -2,6 +2,7 @@ import os
 import pika
 import json
 import requests
+from requests.adapters import HTTPAdapter
 from wand.image import Image
 from dotenv import load_dotenv
 
@@ -24,6 +25,7 @@ connection = pika.BlockingConnection(pika.ConnectionParameters(HOST))
 
 rmq_channel = connection.channel()
 session = requests.Session()
+session.mount('https://minio.pkasila.net', HTTPAdapter(max_retries=5))
 
 rmq_channel.exchange_declare(exchange=SENDER_QUEUE_NAME, exchange_type='topic', durable=True)
 
